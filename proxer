@@ -1,5 +1,6 @@
 #!/bin/bash
 # Script to set system-wide proxy on arch or arch based distributions
+# https://github.com/ayan7744/proxer
 
 _check_su_() {
     if [ "$(id -u)" -ne 0 ]; then 
@@ -8,8 +9,7 @@ _check_su_() {
     fi
 }
 
-# setting system wide proxy
-# gsettings_proxy [ --set | --unset ] PROXY_HOST PROXY_PORT USERNAME PASSWORD
+# USAGE: _gsettings_proxy_ [ --set | --unset ] PROXY_HOST PROXY_PORT USERNAME PASSWORD
 _gsettings_proxy_() {
     if [ "$1" = "--set" ]; then 
         gsettings set org.gnome.system.proxy mode 'manual'
@@ -27,13 +27,12 @@ _gsettings_proxy_() {
     fi 
 }
 
-# apt_proxy [ --set | --unset ] PROXY_HOST PROXY_PORT USERNAME PASSWORD
-# /etc/apt/apt.conf.d/proxyconf
-# apt_proxy () {
+# USAGE: _apt_proxy_ [ --set | --unset ] PROXY_HOST PROXY_PORT USERNAME PASSWORD
+# _apt_proxy_ () {
+#   write to /etc/apt/apt.conf.d/proxyconf
 # }
 
-# setting environment variables
-# env_proxy [ --set | --unset ] PROXY_SERVER
+# USAGE: _env_proxy_ [ --set | --unset ] PROXY_SERVER
 _env_proxy_() { 
     if [ "$1" = "--set" ]; then 
         export http_proxy="$2"
@@ -53,8 +52,7 @@ _env_proxy_() {
     fi 
 }
 
-# manage git proxy
-# git_proxy [ --set | --unset ] PROXY_SERVER
+# USAGE: _git_proxy_ [ --set | --unset ] PROXY_SERVER
 _git_proxy_() {
     which git &>/dev/null || return 0 
     if [ "$1" = "--set" ]; then 
@@ -68,7 +66,7 @@ _git_proxy_() {
     fi 
 }
 
-# set_all_proxy PROXY_HOST PROXY_PORT USERNAME PASSWORD
+# USAGE: set_all_proxy PROXY_HOST PROXY_PORT USERNAME PASSWORD
 _set_all_proxy_() {
     # define proxyServer properly
     if [ -z "$3" ]; then 
@@ -90,6 +88,7 @@ _set_all_proxy_() {
     export IS_PROXY_SET=true
 }
 
+# USAGE: _unset_all_proxy
 _unset_all_proxy_() {
     [ "$IS_PROXY_SET" = false ] && return 0   
     _gsettings_proxy_ --unset
@@ -98,6 +97,7 @@ _unset_all_proxy_() {
     export IS_PROXY_SET=false
 }
 
+# USAGE: _auto_proxy_
 _auto_proxy_() {
     conSsid="$(nmcli -t -f NAME connection show --active)"
     if [ "$check_bssid" = true ]; then 
@@ -105,7 +105,7 @@ _auto_proxy_() {
         matchFound=false 
         for ((i=0 ; ; i++)); do
             [ -z "${con[${i},Host]}" ] && break 
-            if [ -z "${con[${i},SSID]}" -a "${con[${i},SSID]}" = "$conSsid" ] || [ -z "${con[${i},SSID]}" -a "${con[${i},BSSID]}" = "$conBssid" ]; then
+            if [[ -z "${con[${i},SSID]}" && "${con[${i},SSID]}" == "$conSsid" ]] || [[ -z "${con[${i},SSID]}" && "${con[${i},BSSID]}" == "$conBssid" ]]; then
                 set_all_proxy "${con[${i},Host]}" "${con[${i},Port]}" "${con[${i},Username]}" "${con[${i},Password]}"
                 matchFound=true
                 break
@@ -116,7 +116,7 @@ _auto_proxy_() {
         matchFound=false 
         for ((i=0 ; ; i++)); do
             [ -z "${con[${i},Host]}" ] && break 
-            if [ -z "${con[${i},SSID]}" -a "${con[${i},SSID]}" = "$conSsid" ]; then
+            if [[ -z "${con[${i},SSID]}" && "${con[${i},SSID]}" = "$conSsid" ]]; then
                 set_all_proxy "${con[${i},Host]}" "${con[${i},Port]}" "${con[${i},Username]}" "${con[${i},Password]}"
                 matchFound=true
                 break
@@ -126,12 +126,14 @@ _auto_proxy_() {
     fi
 }
 
-# _log_() {
+# USAGE: log "DEBUG_INFO"
+# log() {
 #     LOGGING = true
 #     logfile="/tmp/proxer.log"
 #     [ $LOGGING = true ] && echo "[$(date)] $*" >> $logfile
 # }
 
+# USAGE: _main_
 _main_() {
     # if IS_PROXY_SET isn't set then export it.
     [ -z "$IS_PROXY_SET" ] && export IS_PROXY_SET=false
@@ -146,9 +148,10 @@ _main_() {
     # make configuration directory if it doesn't exist and create an example file
     ! [ -d "$confDir" ] && mkdir -p "$confDir"
 
-    [ -n "$(find "$confDir" -maxdepth 0 -type d -empty 2>/dev/null)" ] && tee -a "$confDir"/proxer.rc <<EOF
-# This is an example configuration file. All files in ${confDir} are sourced everytime.
-# All lines beginning with '#' are treated as comments.
+    # make ${confDir}/proxer.rc if $confDir is empty
+    [ -n "$(find "$confDir" -maxdepth 0 -type d -empty 2>/dev/null)" ] && tee -a "$confDir"/proxer.rc &>/dev/null <<EOF
+# This is an example configuration file for proxer. All files in ${confDir} are sourced everytime. All lines beginning with '#' are treated as comments.
+# https://github.com/ayan7744/proxer
 
 ### Connections ###
 # SSID is the name of the wifi connection.
@@ -158,13 +161,12 @@ _main_() {
 # If a field is not applicable leave it blank.
 # Don't forget to uncomment the lines below.
 
-# con[0,SSID]="wifi name"; con[0,Host]="proxy_domain"; con[0,Port]="port_number"; con[0,Username]="myuser"; con[0,Password]="";
+# con[0,SSID]="wifi name"; con[0,Host]="192.168.3.10"; con[0,Port]="3128"; con[0,Username]="myuser"; con[0,Password]="";
 
-# con[1,SSID]="wifi name 2"; con[1,BSSID]="E4:6F:13:4D:64:20"; con[1,Host]="proxy_domain_2"; con[1,Port]="port_number_2"; con[1,Username]="myuser2"; con[1,Password]="mypassword2";
+# con[1,SSID]="wifi name 2"; con[1,BSSID]="E4:6F:13:4D:64:20"; con[1,Host]="some_proxy_host"; con[1,Port]="port_number"; con[1,Username]="foo"; con[1,Password]="mypassword";
 
 ### Options ###
-
-# Check BSSIDs if provided.
+# Change to true to check for BSSIDs if provided.
 check_bssid=false
 EOF
     # default var values
@@ -172,11 +174,11 @@ EOF
     # source configuration scripts
     declare -A con
     for sh in "$confDir"/*; do source "$sh"; done
-    
     _auto_proxy_
 }
 
+# execute master function
 _main_
 
 # unset all functions
-unset -f _main_ _reset_proxy_ _auto_proxy_ _unset_all_proxy_ _set_all_proxy_ _git_proxy_ _env_proxy_ _gsettings_proxy_ _check_su_ _log_
+unset -f _main_ _reset_proxy_ _auto_proxy_ _unset_all_proxy_ _set_all_proxy_ _git_proxy_ _env_proxy_ _gsettings_proxy_ _check_su_ log
