@@ -45,7 +45,7 @@ function proxyctl
     end
 
     function auto_proxy
-        set configFile $XDG_CONFIG_HOME/proxy.cfg
+        set configFile $XDG_CONFIG_HOME/proxy
         set configFileHead (/bin/cat $configFile | head -1)
         set connectedWifi (nmcli -t -f NAME connection show --active)
         set ssid (echo "$configFileHead" | cut -d' ' -f1)
