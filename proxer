@@ -13,7 +13,7 @@ _check_su_() {
 _urlencode_() {
     # https://gist.github.com/cdown/1163649
     local length="${#1}"
-    for (( i = 0; i < $length; i++ )); do
+    for (( i = 0; i < length; i++ )); do
         local c="${1:$i:1}"
         case $c in
             [a-zA-Z0-9.~_-]) printf '%s' "$c" ;;
@@ -118,9 +118,11 @@ _auto_proxy_() {
         conBssid="$(nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}}')"
         for ((i=0 ; ; i++)); do
             [ -z "${con[${i},Host]}" ] && break 
-            if [[ ! -z "${con[${i},SSID]}" && "${con[${i},SSID]}" == "$conSsid" ]] || [[ ! -z "${con[${i},BSSID]}" && "${con[${i},BSSID]}" == "$conBssid" ]]; then
-                local username="$(_urlencode_ "${con[${i},Username]}")"
-                local password="$(_urlencode_ "${con[${i},Password]}")"
+            if [[ -n "${con[${i},SSID]}" && "${con[${i},SSID]}" == "$conSsid" ]] || [[ -n "${con[${i},BSSID]}" && "${con[${i},BSSID]}" == "$conBssid" ]]; then
+                local username
+                local password
+                username="$(_urlencode_ "${con[${i},Username]}")"
+                password="$(_urlencode_ "${con[${i},Password]}")"
                 _set_all_proxy_ "${con[${i},Host]}" "${con[${i},Port]}" "$username" "$password"
                 matchFound=true
                 break
@@ -129,9 +131,11 @@ _auto_proxy_() {
     else
         for ((i=0 ; ; i++)); do
             [ -z "${con[${i},Host]}" ] && break 
-            if [[ ! -z "${con[${i},SSID]}" && "${con[${i},SSID]}" == "$conSsid" ]]; then
-                local username="$(_urlencode_ "${con[${i},Username]}")"
-                local password="$(_urlencode_ "${con[${i},Password]}")"
+            if [[ -n "${con[${i},SSID]}" && "${con[${i},SSID]}" == "$conSsid" ]]; then
+                local username
+                local password
+                username="$(_urlencode_ "${con[${i},Username]}")"
+                password="$(_urlencode_ "${con[${i},Password]}")"
                 _set_all_proxy_ "${con[${i},Host]}" "${con[${i},Port]}" "$username" "$password"
                 matchFound=true
                 break
