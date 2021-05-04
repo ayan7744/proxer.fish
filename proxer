@@ -11,6 +11,7 @@ _check_su_() {
 
 # USAGE: _urlencode_ STRING
 _urlencode_() {
+    # https://gist.github.com/cdown/1163649
     local length="${#1}"
     for (( i = 0; i < $length; i++ )); do
         local c="${1:$i:1}"
@@ -112,41 +113,39 @@ _unset_all_proxy_() {
 # USAGE: _auto_proxy_
 _auto_proxy_() {
     conSsid="$(nmcli -t -f NAME connection show --active)"
+    local matchFound=false 
     if [ "$check_bssid" = true ]; then 
         conBssid="$(nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}}')"
-        local matchFound=false 
         for ((i=0 ; ; i++)); do
             [ -z "${con[${i},Host]}" ] && break 
-            if [[ -z "${con[${i},SSID]}" && "${con[${i},SSID]}" == "$conSsid" ]] || [[ -z "${con[${i},SSID]}" && "${con[${i},BSSID]}" == "$conBssid" ]]; then
+            if [[ ! -z "${con[${i},SSID]}" && "${con[${i},SSID]}" == "$conSsid" ]] || [[ ! -z "${con[${i},BSSID]}" && "${con[${i},BSSID]}" == "$conBssid" ]]; then
                 local username="$(_urlencode_ "${con[${i},Username]}")"
                 local password="$(_urlencode_ "${con[${i},Password]}")"
-                set_all_proxy "${con[${i},Host]}" "${con[${i},Port]}" "$username" "$password"
+                _set_all_proxy_ "${con[${i},Host]}" "${con[${i},Port]}" "$username" "$password"
                 matchFound=true
                 break
             fi
-            [ "$matchFound" = false ] && _unset_all_proxy_
         done
     else
-        matchFound=false 
         for ((i=0 ; ; i++)); do
             [ -z "${con[${i},Host]}" ] && break 
-            if [[ -z "${con[${i},SSID]}" && "${con[${i},SSID]}" = "$conSsid" ]]; then
+            if [[ ! -z "${con[${i},SSID]}" && "${con[${i},SSID]}" == "$conSsid" ]]; then
                 local username="$(_urlencode_ "${con[${i},Username]}")"
                 local password="$(_urlencode_ "${con[${i},Password]}")"
-                set_all_proxy "${con[${i},Host]}" "${con[${i},Port]}" "$username" "$password"
+                _set_all_proxy_ "${con[${i},Host]}" "${con[${i},Port]}" "$username" "$password"
                 matchFound=true
                 break
             fi
-            [ "$matchFound" = false ] && _unset_all_proxy_
         done
     fi
+    [ "$matchFound" = false ] && _unset_all_proxy_
 }
 
 # USAGE: log "DEBUG_INFO"
 # log() {
-#     LOGGING = true
-#     logfile="/tmp/proxer.log"
-#     [ $LOGGING = true ] && echo "[$(date)] $*" >> $logfile
+#     LOGGING=true
+#    logfile="/tmp/proxer.log"
+#    [ $LOGGING = true ] && echo "[$(date)] $*" >> $logfile
 # }
 
 # USAGE: _main_
