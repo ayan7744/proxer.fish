@@ -9,6 +9,18 @@ _check_su_() {
     fi
 }
 
+# USAGE: _urlencode_ STRING
+_urlencode_() {
+    local length="${#1}"
+    for (( i = 0; i < $length; i++ )); do
+        local c="${1:$i:1}"
+        case $c in
+            [a-zA-Z0-9.~_-]) printf '%s' "$c" ;;
+            *) printf '%%%02X' "'$c" ;;
+        esac
+    done
+}
+
 # USAGE: _gsettings_proxy_ [ --set | --unset ] PROXY_HOST PROXY_PORT USERNAME PASSWORD
 _gsettings_proxy_() {
     if [ "$1" = "--set" ]; then 
@@ -102,11 +114,13 @@ _auto_proxy_() {
     conSsid="$(nmcli -t -f NAME connection show --active)"
     if [ "$check_bssid" = true ]; then 
         conBssid="$(nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}}')"
-        matchFound=false 
+        local matchFound=false 
         for ((i=0 ; ; i++)); do
             [ -z "${con[${i},Host]}" ] && break 
             if [[ -z "${con[${i},SSID]}" && "${con[${i},SSID]}" == "$conSsid" ]] || [[ -z "${con[${i},SSID]}" && "${con[${i},BSSID]}" == "$conBssid" ]]; then
-                set_all_proxy "${con[${i},Host]}" "${con[${i},Port]}" "${con[${i},Username]}" "${con[${i},Password]}"
+                local username="$(_urlencode_ "${con[${i},Username]}")"
+                local password="$(_urlencode_ "${con[${i},Password]}")"
+                set_all_proxy "${con[${i},Host]}" "${con[${i},Port]}" "$username" "$password"
                 matchFound=true
                 break
             fi
@@ -117,7 +131,9 @@ _auto_proxy_() {
         for ((i=0 ; ; i++)); do
             [ -z "${con[${i},Host]}" ] && break 
             if [[ -z "${con[${i},SSID]}" && "${con[${i},SSID]}" = "$conSsid" ]]; then
-                set_all_proxy "${con[${i},Host]}" "${con[${i},Port]}" "${con[${i},Username]}" "${con[${i},Password]}"
+                local username="$(_urlencode_ "${con[${i},Username]}")"
+                local password="$(_urlencode_ "${con[${i},Password]}")"
+                set_all_proxy "${con[${i},Host]}" "${con[${i},Port]}" "$username" "$password"
                 matchFound=true
                 break
             fi
@@ -150,7 +166,11 @@ _main_() {
 
     # make ${confDir}/proxer.rc if $confDir is empty
     [ -n "$(find "$confDir" -maxdepth 0 -type d -empty 2>/dev/null)" ] && tee -a "$confDir"/proxer.rc &>/dev/null <<EOF
-# This is an example configuration file for proxer. All files in ${confDir} are sourced everytime. All lines beginning with '#' are treated as comments.
+# vim: ft=sh
+# This is an example configuration file for proxer.
+# All files in ${confDir} are sourced everytime.
+# All lines beginning with '#' are treated as comments.
+
 # https://github.com/ayan7744/proxer
 
 ### Connections ###
@@ -159,7 +179,7 @@ _main_() {
 # Host is the address of the proxy server (for example, 192.168.3.10).
 # Port is the port number of the proxy server (for example, 3128).
 # If a field is not applicable leave it blank.
-# Don't forget to uncomment the lines below.
+# List out all the connections as shown below and don't forget to uncomment the lines.
 
 # con[0,SSID]="wifi name"; con[0,Host]="192.168.3.10"; con[0,Port]="3128"; con[0,Username]="myuser"; con[0,Password]="";
 
@@ -181,4 +201,4 @@ EOF
 _main_
 
 # unset all functions
-unset -f _main_ _reset_proxy_ _auto_proxy_ _unset_all_proxy_ _set_all_proxy_ _git_proxy_ _env_proxy_ _gsettings_proxy_ _check_su_ log
+unset -f _main_ _reset_proxy_ _auto_proxy_ _unset_all_proxy_ _set_all_proxy_ _git_proxy_ _env_proxy_ _gsettings_proxy_ _check_su_ log _urlencode_
