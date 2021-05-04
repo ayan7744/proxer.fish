@@ -104,9 +104,9 @@ _auto_proxy_() {
         conBssid="$(nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}}')"
         matchFound=false 
         for ((i=0 ; ; i++)); do
-            [ -z "${con[${i},host]}" ] && break 
-            if [ -z "${con[${i},ssid]}" -a "${con[${i},ssid]}" = "$conSsid" ] || [ -z "${con[${i},ssid]}" -a "${con[${i},bssid]}" = "$conBssid" ]; then
-                set_all_proxy "${con[${i},host]}" "${con[${i},port]}" "${con[${i},username]}" "${con[${i},password]}"
+            [ -z "${con[${i},Host]}" ] && break 
+            if [ -z "${con[${i},SSID]}" -a "${con[${i},SSID]}" = "$conSsid" ] || [ -z "${con[${i},SSID]}" -a "${con[${i},BSSID]}" = "$conBssid" ]; then
+                set_all_proxy "${con[${i},Host]}" "${con[${i},Port]}" "${con[${i},Username]}" "${con[${i},Password]}"
                 matchFound=true
                 break
             fi
@@ -115,9 +115,9 @@ _auto_proxy_() {
     else
         matchFound=false 
         for ((i=0 ; ; i++)); do
-            [ -z "${con[${i},host]}" ] && break 
-            if [ -z "${con[${i},ssid]}" -a "${con[${i},ssid]}" = "$conSsid" ]; then
-                set_all_proxy "${con[${i},host]}" "${con[${i},port]}" "${con[${i},username]}" "${con[${i},password]}"
+            [ -z "${con[${i},Host]}" ] && break 
+            if [ -z "${con[${i},SSID]}" -a "${con[${i},SSID]}" = "$conSsid" ]; then
+                set_all_proxy "${con[${i},Host]}" "${con[${i},Port]}" "${con[${i},Username]}" "${con[${i},Password]}"
                 matchFound=true
                 break
             fi
@@ -147,16 +147,24 @@ _main_() {
     ! [ -d "$confDir" ] && mkdir -p "$confDir"
 
     [ -n "$(find "$confDir" -maxdepth 0 -type d -empty 2>/dev/null)" ] && tee -a "$confDir"/proxer.rc <<EOF
-# This is an example file. All files in ${confDir} are sourced everytime as shell scripts.
+# This is an example configuration file. All files in ${confDir} are sourced everytime.
 # All lines beginning with '#' are treated as comments.
 
 ### Connections ###
+# SSID is the name of the wifi connection.
+# BSSID of an wifi connection can be found using "nmcli device wifi list".
+# Host is the address of the proxy server (for example, 192.168.3.10).
+# Port is the port number of the proxy server (for example, 3128).
+# If a field is not applicable leave it blank.
+# Don't forget to uncomment the lines below.
 
-# con[0,ssid]="wifi_name"; con[0,host]="proxy_domain"; con[0,port]="port_number"; con[0,username]="myuser"; con[0,password]="mypassword;
+# con[0,SSID]="wifi name"; con[0,Host]="proxy_domain"; con[0,Port]="port_number"; con[0,Username]="myuser"; con[0,Password]="";
 
-# con[1,ssid]="wifi_name_2"; con[1,host]="proxy_domain_2"; con[1,port]="port_number_2"; con[1,username]="myuser2"; con[1,password]="mypassword2;
+# con[1,SSID]="wifi name 2"; con[1,BSSID]="E4:6F:13:4D:64:20"; con[1,Host]="proxy_domain_2"; con[1,Port]="port_number_2"; con[1,Username]="myuser2"; con[1,Password]="mypassword2";
 
 ### Options ###
+
+# Check BSSIDs if provided.
 check_bssid=false
 EOF
     # default var values
