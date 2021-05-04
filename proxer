@@ -5,7 +5,7 @@
 # get bssid of current network: nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}}'
 
 check_su() {
-    if [ `id -u` -ne 0 ]; then 
+    if [ "$(id -u)" -ne 0 ]; then 
         echo "Must be run with root privileges. Exiting..."
         exit 1
     fi
@@ -113,7 +113,7 @@ auto_proxy() {
     # conBssid="$(nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}})"
     matchFound=false 
     for ((i=0 ; ; i++)); do
-        [ -z ${con[$i,host]} ] && break 
+        [ -z "${con[$i,host]}" ] && break 
         if [ "${con[$i,id]}" = "$conSsid" ]; then
             set_all_proxy "${con[$i,host]}" "${con[$i,port]}" "${con[$i,username]}" "${con[$i,password]}"
             matchFound=true
