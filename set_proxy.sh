@@ -4,32 +4,6 @@
 # read NUMth line from filename: sed "${NUM}q;d" filename
 # get bssid of current network: nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}}'
 
-# if IS_PROXY_SET env var doesn't exist, then export it.
-[ -z "$IS_PROXY_SET" ] && export IS_PROXY_SET=0
-
-
-# set configuration directory
-if [ -z "$XDG_CONFIG_HOME" ]; then
-    configDir="$HOME/.config/proxer/"
-else 
-    configDir="$XDG_CONFIG_HOME/proxer/"
-fi
-
-main() {
-    for sh in $configDir; do source "$sh"; done
-    source "$configFile"
-    conSsid="$(nmcli -t -f NAME connection show --active)"
-    # conBssid="$(nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}})"
-    for ((i=0 ; i++)); do
-        # fix the following line to take, problems when empty ssid
-        [ -z ${con[$i,id]} ] && break 
-        if [ "${con[$i,id]}" = "$conSsid" ]
-            set_all_proxy "${con[$i,host]}" "${con[$i,port]}" "${con[$i,username]}" "${con[$i,password]}"
-            break
-        fi
-    done
-}
-
 check_su() {
     if [ `id -u` -ne 0 ]; then 
         echo "Must be run with root privileges. Exiting..."
@@ -67,8 +41,8 @@ gsettings_proxy () {
 
 ## in /etc/apt/apt.conf.d/70debconf
 # apt_proxy [ --set | --unset ] PROXY_HOST PROXY_PORT USERNAME PASSWORD
-apt_proxy () {
-}
+# apt_proxy () {
+# }
 
 # setting environment variables
 # env_proxy [ --set | --unset ] PROXY_SERVER
@@ -135,54 +109,37 @@ unset_all_proxy() {
 }
 
 auto_proxy() {
-    if [ "$connectedWifi" = "$ssid" ]
-        set_proxy "$proxyServer"
-    else
-        unset_proxy
-    fi
+    conSsid="$(nmcli -t -f NAME connection show --active)"
+    # conBssid="$(nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}})"
+    matchFound=false 
+    for ((i=0 ; ; i++)); do
+        [ -z ${con[$i,host]} ] && break 
+        if [ "${con[$i,id]}" = "$conSsid" ]; then
+            set_all_proxy "${con[$i,host]}" "${con[$i,port]}" "${con[$i,username]}" "${con[$i,password]}"
+            matchFound=true
+            break
+        fi
+        [ "$matchFound" = false ] && unset_all_proxy
+    done
 }
 
 reset_proxy() {
     unset_all_proxy
 }
 
-if [ "$#" -eq 1 ]; then
-  case $1 in    
-    -u| --unset)    
-      reset_proxy
-      exit 0
-      ;;
-    *)          
-      exit_with_usage 
-      ;;
-  esac
-fi
+main() {
+    # if IS_PROXY_SET isn't set then export it.
+    [ -z "$IS_PROXY_SET" ] && export IS_PROXY_SET=0
 
-if [ "$#" -eq 4 ]; then
-  while [ "$1" != "" ]; do
-    case $1 in
-      -h| --host)
-        shift
-        PROXY_HOST=$1
-        echo $PROXY_HOST
-        shift
-        case $1 in
-          -p| --port)
-            shift
-            PROXY_PORT=$1
-            echo $PROXY_PORT
-            shift
-            ;;
-          *) 
-            exit_with_usage 
-            ;;
-        esac
-        ;;
-      *) 
-        exit_with_usage 
-        ;;
-    esac
-  done
-  else
-    exit_with_usage
-fi
+    # set configuration directory
+    if [ -z "$XDG_CONFIG_HOME" ]; then
+        confDir="$HOME/.config/proxer/"
+    else 
+        confDir="$XDG_CONFIG_HOME/proxer/"
+    fi
+
+    for sh in $confDir; do source "$sh"; done
+    auto_proxy
+}
+
+main 
