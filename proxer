@@ -56,16 +56,13 @@ _env_proxy_() {
 # manage git proxy
 # git_proxy [ --set | --unset ] PROXY_SERVER
 _git_proxy_() {
+    which git &>/dev/null || return 0 
     if [ "$1" = "--set" ]; then 
-        if hash git 2>/dev/null; then
-          git config --global http.proxy "$2"
-          git config --global https.proxy "$2"
-        fi
+        git config --global http.proxy "$2"
+        git config --global https.proxy "$2"
     elif [ "$1" = "--unset" ]; then
-        if hash git 2>/dev/null; then
-          git config --global --unset http.proxy
-          git config --global --unset https.proxy
-        fi
+        git config --global --unset http.proxy
+        git config --global --unset https.proxy
     else 
         exit 1
     fi 
@@ -129,10 +126,6 @@ _auto_proxy_() {
     fi
 }
 
-_reset_proxy_() {
-    _unset_all_proxy_
-}
-
 # _log_() {
 #     LOGGING = true
 #     logfile="/tmp/proxer.log"
@@ -145,25 +138,27 @@ _main_() {
 
     # set configuration directory
     if [ -z "$XDG_CONFIG_HOME" ]; then
-        ! [ -d $HOME/.config/proxer ] && mkdir -p $HOME/.config/proxer
-        tee -a $HOME/.config/01-proxy-list <<EOF
-# Delete the following lines. 
-con[0,ssid]="wifi_name"; con[0,host]="proxy_domain"; con[0,port]="port_number"; con[0,username]="myuser"; con[0,password]="mypassword;
-
-con[1,ssid]="wifi_name_2"; con[1,host]="proxy_domain_2"; con[1,port]="port_number_2"; con[1,username]="myuser2"; con[1,password]="mypassword2;
-EOF
         confDir="$HOME/.config/proxer"
     else 
-        ! [ -d $XDG_CONFIG_HOME/proxer ] && mkdir -p $XDG_CONFIG_HOME/proxer
-        tee -a $XDG_CONFIG_HOME/proxer/01-proxy-list <<EOF
-# Delete the following lines.
-
-con[0,ssid]="wifi_name"; con[0,host]="proxy_domain"; con[0,port]="port_number"; con[0,username]="myuser"; con[0,password]="mypassword;
-
-con[1,ssid]="wifi_name_2"; con[1,host]="proxy_domain_2"; con[1,port]="port_number_2"; con[1,username]="myuser2"; con[1,password]="mypassword2;
-EOF
         confDir="$XDG_CONFIG_HOME/proxer"
     fi
+
+    # make configuration directory if it doesn't exist and create an example file
+    ! [ -d "$confDir" ] && mkdir -p "$confDir"
+
+    [ -n "$(find "$confDir" -maxdepth 0 -type d -empty 2>/dev/null)" ] && tee -a "$confDir"/proxer.rc <<EOF
+# This is an example file. All files in ${confDir} are sourced everytime as shell scripts.
+# All lines beginning with '#' are treated as comments.
+
+### Connections ###
+
+# con[0,ssid]="wifi_name"; con[0,host]="proxy_domain"; con[0,port]="port_number"; con[0,username]="myuser"; con[0,password]="mypassword;
+
+# con[1,ssid]="wifi_name_2"; con[1,host]="proxy_domain_2"; con[1,port]="port_number_2"; con[1,username]="myuser2"; con[1,password]="mypassword2;
+
+### Options ###
+check_bssid=false
+EOF
     # default var values
     check_bssid=false
     # source configuration scripts
