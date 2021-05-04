@@ -1,30 +1,34 @@
-#!/bin/sh
-# Script to set system-wide proxy in Arch
+#!/bin/bash
+# Script to set system-wide proxy in arch or arch based distributions
+
+# read NUMth line from filename: sed "${NUM}q;d" filename
+# get bssid of current network: nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}}'
 
 # if IS_PROXY_SET env var doesn't exist, then export it.
 [ -z "$IS_PROXY_SET" ] && export IS_PROXY_SET=0
 
+
+# set configuration directory
 if [ -z "$XDG_CONFIG_HOME" ]; then
-    configFile="$HOME/.config/proxer/proxy"
+    configDir="$HOME/.config/proxer/"
 else 
-    configFile="$XDG_CONFIG_HOME/proxer/proxy"
+    configDir="$XDG_CONFIG_HOME/proxer/"
 fi
 
-configFileHead="$(/bin/cat $configFile | head -1)"
-connectedWifi="$(nmcli -t -f NAME connection show --active)"
-ssid="$(echo "$configFileHead" | cut -d' ' -f1)"
-proxyHost="$(echo "$configFileHead" | cut -d' ' -f2)"
-proxyPort="$(echo "$configFileHead" | cut -d' ' -f3)"
-proxyUser="$(echo "$configFileHead" | cut -d' ' -f4)"
-proxyPass="$(echo "$configFileHead" | cut -d' ' -f5)"
-
-if [ -z "$proxyUser" ]; then 
-    proxyServer="http://$proxyHost:$proxyPort/"
-elif [ -z "$proxyPass" ]; then 
-    proxyServer="http://$proxyUser@$proxyHost:$proxyPort/"
-else 
-    proxyServer="http://$proxyUser:$proxyPass@$proxyHost:$proxyPort/"
-fi
+main() {
+    for sh in $configDir; do source "$sh"; done
+    source "$configFile"
+    conSsid="$(nmcli -t -f NAME connection show --active)"
+    # conBssid="$(nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}})"
+    for ((i=0 ; i++)); do
+        # fix the following line to take, problems when empty ssid
+        [ -z ${con[$i,id]} ] && break 
+        if [ "${con[$i,id]}" = "$conSsid" ]
+            set_all_proxy "${con[$i,host]}" "${con[$i,port]}" "${con[$i,username]}" "${con[$i,password]}"
+            break
+        fi
+    done
+}
 
 check_su() {
     if [ `id -u` -ne 0 ]; then 
@@ -37,20 +41,20 @@ _exit() {
     echo "proxer: invalid option"
     echo "Usage: proxer -h [PROXY HOST] -p [PROXY PORT]"
     echo "Try 'proxer --help' for more information."
-    # Help to be added later when script functions increases
     exit 1
 }
 
 # setting system wide proxy
+# gsettings_proxy [ --set | --unset ] PROXY_HOST PROXY_PORT USERNAME PASSWORD
 gsettings_proxy () {
     if [ "$1" = "--set" ]; then 
         gsettings set org.gnome.system.proxy mode 'manual'
+        gsettings set org.gnome.system.proxy.http enabled true
         gsettings set org.gnome.system.proxy.http host "$2"
         gsettings set org.gnome.system.proxy.http port "$3"
-        gsettings set org.gnome.system.proxy.https host "$2"
-        gsettings set org.gnome.system.proxy.https port "$3"
-        gsettings set org.gnome.system.proxy.ftp host "$2"
-        gsettings set org.gnome.system.proxy.ftp port "$3"
+        gsettings set org.gnome.system.proxy use-same-proxy true
+        [ -z "$4" ] || gsettings set org.gnome.system.proxy.http authentication-user "$4"
+        [ -z "$5" ] || gsettings set org.gnome.system.proxy.http authentication-password "$5"
         gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.1', 'localaddress','.localdomain.com', '::1', '10.*.*.*']"
     elif [ "$1" = "--unset" ]; then
         gsettings set org.gnome.system.proxy mode none
@@ -62,10 +66,12 @@ gsettings_proxy () {
 # setting APT-conf proxy
 
 ## in /etc/apt/apt.conf.d/70debconf
+# apt_proxy [ --set | --unset ] PROXY_HOST PROXY_PORT USERNAME PASSWORD
 apt_proxy () {
 }
 
 # setting environment variables
+# env_proxy [ --set | --unset ] PROXY_SERVER
 env_proxy () { 
     if [ "$1" = "--set" ]; then 
         export http_proxy="$2"
@@ -86,6 +92,7 @@ env_proxy () {
 }
 
 # manage git proxy
+# git_proxy [ --set | --unset ] PROXY_SERVER
 git_proxy () {
     if [ "$1" = "--set" ]; then 
         if hash git 2>/dev/null; then
@@ -102,9 +109,18 @@ git_proxy () {
     fi 
 }
 
+# set_all_proxy PROXY_HOST PROXY_PORT USERNAME PASSWORD
 set_all_proxy() {
     [ "$IS_PROXY_SET" = "1" ] && return 0   
-    gsettings_proxy --set "$proxyHost" "$proxyPort"
+    # define proxyServer properly
+    if [ -z "$3" ]; then 
+        proxyServer="http://$1:$2/"
+    elif [ -z "$4" ]; then 
+        proxyServer="http://$3@$1:$2/"
+    else 
+        proxyServer="http://$3:$4@$1:$2/"
+    fi
+    gsettings_proxy --set "$1" "$2" "$3" "$4"
     git_proxy --set "$proxyServer"
     env_proxy --set "$proxyServer"
     export IS_PROXY_SET=1
@@ -128,8 +144,6 @@ auto_proxy() {
 
 reset_proxy() {
     unset_all_proxy
-    sed -i.bak "/Acquire::/d" /etc/apt/apt.conf
-    sed -i.bak "/Acquire::/,+10d" /etc/apt/apt.conf.d/70debconf
 }
 
 if [ "$#" -eq 1 ]; then
