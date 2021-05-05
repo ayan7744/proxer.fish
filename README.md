@@ -1,5 +1,5 @@
 # proxer - automatic proxy script
-Minimal proxy script for arch and arch based distributions. Sets or unsets proxy depending on the WiFi it's connected to. WiFis can be identified using both SSID or BSSID. Read `proxer.rc` for more information.
+Minimal proxy script for arch and arch based distributions. Sets or unsets proxy depending on the WiFi it's connected to. WiFis can be identified by both SSID or BSSID. Read `proxer.rc` for more information.
 ## Installation and Usage
 Add the following line to your `.bashrc` or `.zshrc`.
 ```bash
