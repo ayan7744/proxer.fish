@@ -166,7 +166,6 @@ _main_() {
 
     # make ${confDir}/proxer.rc if $confDir if it doesn't exist
     [ -f "${confDir}/proxer.rc" ] || tee -a "$confDir"/proxer.rc &>/dev/null <<EOF
-
 # MIT License
 # Copyright (c) 2021 Ayan Nath
 
