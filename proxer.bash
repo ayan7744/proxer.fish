@@ -1,13 +1,7 @@
 #!/bin/bash
 # Script to set system-wide proxy on arch or arch based distributions
+# Author: Ayan Nath
 # https://github.com/ayan7744/proxer
-
-_check_su_() {
-    if [ "$(id -u)" -ne 0 ]; then 
-        echo "Must be run with root privileges. Exiting..."
-        exit 1
-    fi
-}
 
 # USAGE: _urlencode_ STRING
 _urlencode_() {
@@ -165,15 +159,15 @@ _main_() {
     fi
 
     # make configuration directory if it doesn't exist and create an example file
-    ! [ -d "$confDir" ] && mkdir -p "$confDir"
+    [ -d "$confDir" ] || mkdir -p "$confDir"
 
-    # make ${confDir}/proxer.rc if $confDir is empty
-    [ -n "$(find "$confDir" -maxdepth 0 -type d -empty 2>/dev/null)" ] && tee -a "$confDir"/proxer.rc &>/dev/null <<EOF
-# vim: ft=sh
-# This is an example configuration file for proxer.
-# All files in ${confDir} are sourced everytime.
+    # make ${confDir}/proxer.rc if $confDir if it doesn't exist
+    [ -f "${confDir}/proxer.rc" ] || tee -a "$confDir"/proxer.rc &>/dev/null <<EOF
+# This is the configuration file for proxer.
+# This file is sourced everytime. 
 # All lines beginning with '#' are treated as comments.
 
+# Author: Ayan Nath
 # https://github.com/ayan7744/proxer
 
 ### Connections ###
@@ -186,17 +180,17 @@ _main_() {
 
 # con[0,SSID]="wifi name"; con[0,Host]="192.168.3.10"; con[0,Port]="3128"; con[0,Username]="myuser"; con[0,Password]="";
 
-# con[1,SSID]="wifi name 2"; con[1,BSSID]="E4:6F:13:4D:64:20"; con[1,Host]="some_proxy_host"; con[1,Port]="port_number"; con[1,Username]="foo"; con[1,Password]="mypassword";
+# con[1,SSID]="wifi name 2"; con[1,BSSID]="E4:6F:13:4D:64:20"; con[1,Host]="192.168.4.11"; con[1,Port]="8080"; con[1,Username]="foo"; con[1,Password]="bar";
 
 ### Options ###
 # Change to true to check for BSSIDs if provided.
 check_bssid=false
 EOF
-    # default var values
-    check_bssid=false
-    # source configuration scripts
+    # declare associative array con
     declare -A con
-    for sh in "$confDir"/*; do source "$sh"; done
+    # source configuration scripts
+    # shellcheck disable=SC1091
+    source "${confDir}/proxer.rc"
     _auto_proxy_
 }
 
@@ -204,4 +198,4 @@ EOF
 _main_
 
 # unset all functions
-unset -f _main_ _reset_proxy_ _auto_proxy_ _unset_all_proxy_ _set_all_proxy_ _git_proxy_ _env_proxy_ _gsettings_proxy_ _check_su_ log _urlencode_
+unset -f _main_ _auto_proxy_ _unset_all_proxy_ _set_all_proxy_ _git_proxy_ _env_proxy_ _gsettings_proxy_ _check_su_ _urlencode_
