@@ -1,5 +1,6 @@
 # proxer - automatic proxy script
-![made-with-bash](https://img.shields.io/static/v1?label=Written%20in&message=bash&color=blue&style=for-the-badge)
+![built-with-love](https://img.shields.io/static/v1?label=Built%20with&message=%E2%9D%A4&color=red&style=for-the-badge) &nbsp;
+![made-with-bash](https://img.shields.io/static/v1?label=Written%20in&message=bash&color=blue&style=for-the-badge) &nbsp;
 ![works-on-linux](https://img.shields.io/static/v1?label=Works%20on&message=Linux&color=green&style=for-the-badge)
 
 Minimal proxy script for arch and arch based distributions. Sets or unsets a proxy depending on the WiFi it's connected to. WiFis can be identified by both SSID or BSSID. Read `proxer.rc` for more information.
