@@ -203,4 +203,4 @@ EOF
 _main_
 
 # unset all functions
-unset -f _main_ _auto_proxy_ _unset_all_proxy_ _set_all_proxy_ _git_proxy_ _env_proxy_ _gsettings_proxy_ _check_su_ _urlencode_
+unset -f _main_ _auto_proxy_ _unset_all_proxy_ _set_all_proxy_ _git_proxy_ _env_proxy_ _gsettings_proxy_ _urlencode_
