@@ -13,3 +13,6 @@ curl "https://raw.githubusercontent.com/ayan7744/proxer/master/proxer" > ~/.loca
 ```
 ## Configuration
 Read `~/.config/proxer/proxer.rc` or `$XDG_CONFIG_HOME/proxer/proxer.rc` for information.
+
+## Fish shell?
+Coming soon...
