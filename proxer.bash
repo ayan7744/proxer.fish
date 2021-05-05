@@ -1,6 +1,9 @@
 #!/bin/bash
-# Script to set system-wide proxy on arch or arch based distributions
-# Author: Ayan Nath
+
+# MIT License
+# Copyright (c) 2021 Ayan Nath
+
+# proxer - script to set proxy settings on arch or arch based distributions.
 # https://github.com/ayan7744/proxer
 
 # USAGE: _urlencode_ STRING
@@ -163,12 +166,15 @@ _main_() {
 
     # make ${confDir}/proxer.rc if $confDir if it doesn't exist
     [ -f "${confDir}/proxer.rc" ] || tee -a "$confDir"/proxer.rc &>/dev/null <<EOF
-# This is the configuration file for proxer.
+
+# MIT License
+# Copyright (c) 2021 Ayan Nath
+
+# https://github.com/ayan7744/proxer
+
+# proxer - configuration file
 # This file is sourced everytime. 
 # All lines beginning with '#' are treated as comments.
-
-# Author: Ayan Nath
-# https://github.com/ayan7744/proxer
 
 ### Connections ###
 # SSID is the name of the wifi connection.
