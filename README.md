@@ -1,5 +1,5 @@
 # proxer - automatic proxy script
-![built-with-love](https://img.shields.io/static/v1?label=Built%20with&message=%E2%9D%A4&color=red&style=for-the-badge) &nbsp;
+<!--- ![built-with-love](https://img.shields.io/static/v1?label=Built%20with&message=%E2%9D%A4&color=red&style=for-the-badge) &nbsp; -->
 ![made-with-bash](https://img.shields.io/static/v1?label=Written%20in&message=bash&color=blue&style=for-the-badge) &nbsp;
 ![works-on-linux](https://img.shields.io/static/v1?label=Works%20on&message=Linux&color=green&style=for-the-badge)
 
