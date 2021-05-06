@@ -3,7 +3,7 @@
 # MIT License
 # Copyright (c) 2021 Ayan Nath
 
-# proxer - Minimal proxy script for arch and arch based distributions. Sets or unsets a proxy depending on the WiFi it's connected to. 
+# proxer - Minimal proxy script for arch and arch based distributions. Sets or unsets a proxy depending on the connected WiFi. 
 # https://github.com/ayan7744/proxer
 
 # USAGE: _urlencode_ STRING
