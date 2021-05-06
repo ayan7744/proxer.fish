@@ -21,19 +21,19 @@ _urlencode_() {
 
 # USAGE: _gsettings_proxy_ [ --set | --unset ] PROXY_HOST PROXY_PORT USERNAME PASSWORD
 _gsettings_proxy_() {
-    if [ "$1" = "--set" ]; then 
+    if [[ "$1" = "--set" ]]; then 
         gsettings set org.gnome.system.proxy mode 'manual'
         gsettings set org.gnome.system.proxy.http enabled true
         gsettings set org.gnome.system.proxy.http host "$2"
         gsettings set org.gnome.system.proxy.http port "$3"
         gsettings set org.gnome.system.proxy use-same-proxy true
-        [ -z "$4" ] || gsettings set org.gnome.system.proxy.http authentication-user "$4"
-        [ -z "$5" ] || gsettings set org.gnome.system.proxy.http authentication-password "$5"
+        [[ -z "$4" ]] || gsettings set org.gnome.system.proxy.http authentication-user "$4"
+        [[ -z "$5" ]] || gsettings set org.gnome.system.proxy.http authentication-password "$5"
         gsettings set org.gnome.system.proxy ignore-hosts "['localhost', '127.0.0.1', 'localaddress','.localdomain.com', '::1', '10.*.*.*']"
-    elif [ "$1" = "--unset" ]; then
+    elif [[ "$1" = "--unset" ]]; then
         gsettings set org.gnome.system.proxy mode none
     else 
-        exit 1
+        return 1
     fi 
 }
 
@@ -44,7 +44,7 @@ _gsettings_proxy_() {
 
 # USAGE: _env_proxy_ [ --set | --unset ] PROXY_SERVER
 _env_proxy_() { 
-    if [ "$1" = "--set" ]; then 
+    if [[ "$1" = "--set" ]]; then 
         export http_proxy="$2"
         export HTTP_PROXY="$http_proxy"
         export https_proxy="$http_proxy"
@@ -55,40 +55,40 @@ _env_proxy_() {
         export RSYNC_PROXY="$http_proxy"
         export all_proxy="$http_proxy"
         export no_proxy="localhost,127.0.0.1,localaddress,.localdomain.com,::1,10.*.*.*"
-    elif [ "$1" = "--unset" ]; then
+    elif [[ "$1" = "--unset" ]]; then
         unset http_proxy HTTP_PROXY https_proxy HTTPS_PROXY ftp_proxy FTP_PROXY rsync_proxy RSYNC_PROXY all_proxy no_proxy
     else 
-        exit 1
+        return 1
     fi 
 }
 
 # USAGE: _git_proxy_ [ --set | --unset ] PROXY_SERVER
 _git_proxy_() {
     which git &>/dev/null || return 0 
-    if [ "$1" = "--set" ]; then 
+    if [[ "$1" = "--set" ]]; then 
         git config --global http.proxy "$2"
         git config --global https.proxy "$2"
-    elif [ "$1" = "--unset" ]; then
+    elif [[ "$1" = "--unset" ]]; then
         git config --global --unset http.proxy
         git config --global --unset https.proxy
     else 
-        exit 1
+        return 1
     fi 
 }
 
 # USAGE: set_all_proxy PROXY_HOST PROXY_PORT USERNAME PASSWORD
 _set_all_proxy_() {
     # define proxyServer properly
-    if [ -z "$3" ]; then 
+    if [[ -z "$3" ]]; then 
         proxyServer="http://$1:$2/"
-    elif [ -z "$4" ]; then 
+    elif [[ -z "$4" ]]; then 
         proxyServer="http://$3@$1:$2/"
     else 
         proxyServer="http://$3:$4@$1:$2/"
     fi
     
     # check if the same proxy is already set
-    if [ "$IS_PROXY_SET" = true ] && [ "$http_proxy" = "$proxyServer" ]; then
+    if [[ "$IS_PROXY_SET" = true ]] && [[ "$http_proxy" = "$proxyServer" ]]; then
         return 0   
     fi
 
@@ -100,7 +100,7 @@ _set_all_proxy_() {
 
 # USAGE: _unset_all_proxy
 _unset_all_proxy_() {
-    [ "$IS_PROXY_SET" = false ] && return 0   
+    [[ "$IS_PROXY_SET" = false ]] && return 0   
     _gsettings_proxy_ --unset
     _git_proxy_ --unset
     _env_proxy_ --unset
@@ -111,10 +111,10 @@ _unset_all_proxy_() {
 _auto_proxy_() {
     conSsid="$(nmcli -t -f NAME connection show --active)"
     local matchFound=false 
-    if [ "$check_bssid" = true ]; then 
+    if [[ "$check_bssid" = true ]]; then 
         conBssid="$(nmcli -f IN-USE,BSSID device wifi | awk '/^\*/{if (NR!=1) {print $2}}')"
         for ((i=0 ; ; i++)); do
-            [ -z "${con[${i},Host]}" ] && break 
+            [[ -z "${con[${i},Host]}" ]] && break 
             if [[ -n "${con[${i},SSID]}" && "${con[${i},SSID]}" == "$conSsid" ]] || [[ -n "${con[${i},BSSID]}" && "${con[${i},BSSID]}" == "$conBssid" ]]; then
                 local username
                 local password
@@ -127,7 +127,7 @@ _auto_proxy_() {
         done
     else
         for ((i=0 ; ; i++)); do
-            [ -z "${con[${i},Host]}" ] && break 
+            [[ -z "${con[${i},Host]}" ]] && break 
             if [[ -n "${con[${i},SSID]}" && "${con[${i},SSID]}" == "$conSsid" ]]; then
                 local username
                 local password
@@ -139,33 +139,33 @@ _auto_proxy_() {
             fi
         done
     fi
-    [ "$matchFound" = false ] && _unset_all_proxy_
+    [[ "$matchFound" = false ]] && _unset_all_proxy_
 }
 
 # USAGE: log "DEBUG_INFO"
 # log() {
 #     LOGGING=true
 #    logfile="/tmp/proxer.log"
-#    [ $LOGGING = true ] && echo "[$(date)] $*" >> $logfile
+#    [[ $LOGGING = true ]] && echo "[$(date)] $*" >> $logfile
 # }
 
 # USAGE: _main_
 _main_() {
     # if IS_PROXY_SET isn't set then export it.
-    [ -z "$IS_PROXY_SET" ] && export IS_PROXY_SET=false
+    [[ -z "$IS_PROXY_SET" ]] && export IS_PROXY_SET=false
 
     # set configuration directory
-    if [ -z "$XDG_CONFIG_HOME" ]; then
+    if [[ -z "$XDG_CONFIG_HOME" ]]; then
         confDir="$HOME/.config/proxer"
     else 
         confDir="$XDG_CONFIG_HOME/proxer"
     fi
 
     # make configuration directory if it doesn't exist and create an example file
-    [ -d "$confDir" ] || mkdir -p "$confDir"
+    [[ -d "$confDir" ]] || mkdir -p "$confDir"
 
     # make ${confDir}/proxer.rc if $confDir if it doesn't exist
-    [ -f "${confDir}/proxer.rc" ] || tee -a "$confDir"/proxer.rc &>/dev/null <<EOF
+    [[ -f "${confDir}/proxer.rc" ]] || tee -a "$confDir"/proxer.rc &>/dev/null <<EOF
 # MIT License
 # Copyright (c) 2021 Ayan Nath
 
