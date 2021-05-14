@@ -26,10 +26,10 @@ _gsettings_proxy_() {
         gsettings set org.gnome.system.proxy.http enabled true
         gsettings set org.gnome.system.proxy.http host "$2"
         gsettings set org.gnome.system.proxy.http port "$3"
-        gsettings set org.gnome.system.proxy.https host "$argv[2]"
-        gsettings set org.gnome.system.proxy.https port "$argv[3]"
-        gsettings set org.gnome.system.proxy.ftp host "$argv[2]"
-        gsettings set org.gnome.system.proxy.ftp port "$argv[3]"
+        gsettings set org.gnome.system.proxy.https host "$2"
+        gsettings set org.gnome.system.proxy.https port "$3"
+        gsettings set org.gnome.system.proxy.ftp host "$2"
+        gsettings set org.gnome.system.proxy.ftp port "$3"
         gsettings set org.gnome.system.proxy use-same-proxy true
         [[ -z "$4" ]] || gsettings set org.gnome.system.proxy.http authentication-user "$4"
         [[ -z "$5" ]] || gsettings set org.gnome.system.proxy.http authentication-password "$5"
