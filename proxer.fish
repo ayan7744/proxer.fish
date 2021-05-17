@@ -3,11 +3,10 @@
 # MIT License
 # Copyright (c) 2021 Ayan Nath
 
-# proxer - script to set system-wide proxy on arch or arch based distributions
-# https://github.com/ayan7744/proxer
+# proxer.fish - script to set system-wide proxy on arch or arch based distributions for fish users
+# https://github.com/ayan7744/proxer.fish
 
 # USAGE: _gsettings_proxy_ [ --set | --unset ] PROXY_HOST PROXY_PORT USERNAME PASSWORD
-
 function _gsettings_proxy_
     if test "$argv[1]" = "--set" 
         gsettings set org.gnome.system.proxy mode 'manual'
