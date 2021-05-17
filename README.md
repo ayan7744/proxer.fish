@@ -3,7 +3,7 @@
 ![written-in-fish](https://img.shields.io/static/v1?label=Written%20in&message=fish&color=orange&style=for-the-badge) &nbsp;
 <!--- ![works-on-linux](https://img.shields.io/static/v1?label=Works%20on&message=Linux&color=green&style=for-the-badge) -->
 
-Minimal proxy script for arch and arch based distributions for fish users. Sets or unsets a proxy depending on the connected WiFi.
+Minimal proxy script for arch and arch based distributions for fish users. Sets or unsets proxy depending on the connected WiFi.
 
 ## Installation and Usage
 It is a good idea to export the variable `$XDG_CONFIG_HOME` even if you use the default `~/.config/` directory.  Add `set -gx XDG_CONFIG_HOME /path/to/config/dir/` to your `config.fish` if you haven't already. Then add the following line to your `config.fish`:
