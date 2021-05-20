@@ -26,6 +26,6 @@ set username "myuser"
 set password "mypassword"
 set proxy_address "http://$username:$password@$proxy_host:$proxy_port/"
 ```
-Don't forget to URL encode your username and password.
+Don't forget to URL encode your username and password in proxy_address variable.
 ## Dependencies
 * NetworkManager
