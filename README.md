@@ -27,5 +27,9 @@ set password "mypassword"
 set proxy_address "http://$username:$password@$proxy_host:$proxy_port/"
 ```
 Don't forget to URL encode your username and password in proxy_address variable.
+Make the file `/etc/sudoers.d/05-proxer` with the following contents to pass proxy environment variables to programs when using `sudo`:
+```bash
+Defaults env_keep += "*_proxy *_PROXY IS_PROXY_ON"
+```
 ## Dependencies
 * NetworkManager
